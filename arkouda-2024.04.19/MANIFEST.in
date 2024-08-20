@@ -1,0 +1,13 @@
+include *.md
+recursive-include src *
+recursive-include pydoc *.py *.rst Makefile make.bat
+recursive-include test *
+recursive-include tests *
+recursive-include benchmarks *
+recursive-include dep *
+include LICENSE
+include Makefile
+include VERSION
+include setup.py
+include installers.pyinclude versioneer.py
+include arkouda/_version.py

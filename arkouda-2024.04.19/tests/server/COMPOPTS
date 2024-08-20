@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+if [[ -n $CHPL_HOME ]]; then
+  export PATH="$PATH:$CHPL_HOME/bin/$CHPL_HOST_BIN_SUBDIR"
+fi
+
+PARENT_DIR=$(dirname $(cd $(dirname $0) ; pwd))
+GRANDPARENT_DIR=$(dirname $PARENT_DIR)
+ARKOUDA_HOME=${ARKOUDA_HOME:-$GRANDPARENT_DIR}
+
+# Get test flags (dependencies, user options, optimization level)
+TEST_FLAGS=$(cd $ARKOUDA_HOME && make -s print-TEST_CHPL_FLAGS)
+
+# -M dir
+SRC_DIR=$(cd $ARKOUDA_HOME && make -s print-ARKOUDA_SOURCE_DIR)
+
+# Compat modules
+COMPAT_MODULES=$(cd $ARKOUDA_HOME && make -s print-ARKOUDA_COMPAT_MODULES)
+
+# Location of the configuration file, so we always include it and disable extra
+# debugging that might make noise in the tests
+CONFIG_FILE="${SRC_DIR}/ServerConfig.chpl"
+CONFIG_OPTS="${CONFIG_FILE} -strace=false -sarkoudaVersion=\"\\\"TEST_VERSION_STRING\\\"\""
+TEST_OPTS="-sprintTimes=false -sprintDiags=false -sprintDiagsSum=false"
+
+if [[ ! -f $SRC_DIR/ArrowFunctions.o ]]; then
+  make -s -C ${ARKOUDA_HOME} compile-arrow-cpp > /dev/null 2> /dev/null
+fi
+
+echo "${TEST_FLAGS} -M ${SRC_DIR} ${COMPAT_MODULES} ${CONFIG_OPTS} ${TEST_OPTS}"
