@@ -16,11 +16,18 @@ pd.options.mode.chained_assignment = None  # default='warn'
 # from compcon.mapping import *
 def get_neuron_local(id,prune_factor, ds_factor):
     try:
-        n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
-        flywire.get_synapses(n, attach=True, materialization=783)
-        c = n.connectors
-        n_prune = navis.prune_twigs(n, prune_factor)
-        n_ds = navis.downsample_neuron(n_prune, downsampling_factor=ds_factor, inplace=False)
+        if ds_factor == 0:
+            n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
+            flywire.get_synapses(n, attach=True, materialization=783)
+            c = n.connectors
+            n_prune = navis.prune_twigs(n, prune_factor)
+            n_ds = n_prune
+        else:
+            n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
+            flywire.get_synapses(n, attach=True, materialization=783)
+            c = n.connectors
+            n_prune = navis.prune_twigs(n, prune_factor)
+            n_ds = navis.downsample_neuron(n_prune, downsampling_factor=ds_factor, inplace=False)
     
     except FileNotFoundError as e:
         print(f"Error: {e}")
