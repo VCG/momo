@@ -174,3 +174,119 @@ def tast_overall(id_list):
     # ak.disconnect()
 
     return graph ,spatial_connectome_edge_df, neurons
+
+
+#visualization of the drawn motif in the neurons with plot3d
+tast1 = d[((d["src"] == 17501842) & (d["dst"] == 21242178)) | ((d["src"] == 21242178) & (d["dst"] == 17501842))]
+tast2 = d[((d["src"] == 18421753) & (d["dst"] == 21782204)) | ((d["src"] == 21782204) & (d["dst"] == 18421753))]
+tast3 = d[((d["src"] == 17531674) & (d["dst"] == 22042027)) | ((d["src"] == 22042027) & (d["dst"] == 17531674))]
+
+src = tast1["src"].to_ndarray().tolist()
+dst = tast1["dst"].to_ndarray().tolist()
+
+src.extend(tast2["src"].to_ndarray().tolist())
+dst.extend(tast2["dst"].to_ndarray().tolist())
+
+src.extend(tast3["src"].to_ndarray().tolist())
+dst.extend(tast3["dst"].to_ndarray().tolist())
+
+x=[]
+y=[]
+z=[]
+node_id=[]
+parent_id=[]
+
+new_n= []
+
+for i in range(len(src)):
+
+    ser = d[((d['src'] == src[i]) )& (d['connection_type'] == "n")]
+    if ser.size == 0:
+        ser = d[((d['dst'] == src[i]) )& (d['connection_type'] == "n")][0]
+        x.append(ser["d_x"])
+        y.append(ser["d_y"])
+        z.append(ser["d_z"])
+    else:
+        x.append(ser[0]["s_x"])
+        y.append(ser[0]["s_y"])
+        z.append(ser[0]["s_z"])
+    
+    node_id.append(src[i] + 1000 +i)
+    parent_id.append(-1)
+
+    ser = d[((d['src'] == dst[i]) )& (d['connection_type'] == "n")]
+    if ser.size == 0:
+        ser = d[((d['dst'] == dst[i]) )& (d['connection_type'] == "n")][0]
+        x.append(ser["d_x"])
+        y.append(ser["d_y"])
+        z.append(ser["d_z"])
+    else:
+        x.append(ser[0]["s_x"])
+        y.append(ser[0]["s_y"])
+        z.append(ser[0]["s_z"])
+
+    node_id.append(dst[i] + 1000 + i)
+    parent_id.append(src[i] + 1000 + i)
+data = {
+            'x': x,
+            'y': y,
+            'z': z,
+            'node_id': node_id,
+            'parent_id': parent_id,
+            }
+df = pd.DataFrame(data)
+new_n.append(navis.TreeNeuron(df, name="Synapses"))
+
+x=[]
+y=[]
+z=[]
+node_id=[]
+parent_id=[]
+
+srcc = [17501842, 18421753, 17531674, 21242178, 21782204, 22042027]
+
+for i in range(len(srcc)):
+
+    ser = d[((d['src'] == srcc[i]) )& (d['connection_type'] == "n")]
+    if ser.size == 0:
+        ser = d[((d['dst'] == srcc[i]) )& (d['connection_type'] == "n")][0]
+        x.append(ser["d_bef_x"])
+        y.append(ser["d_bef_y"])
+        z.append(ser["d_bef_z"])
+
+        node_id.append(srcc[i] + i)
+        parent_id.append(-1)
+
+        x.append(ser["d_af_x"])
+        y.append(ser["d_af_y"])
+        z.append(ser["d_af_z"])
+
+        node_id.append(srcc[i] + 100 + i)
+        parent_id.append(srcc[i] + i)
+
+
+    else:
+        x.append(ser[0]["s_bef_x"])
+        y.append(ser[0]["s_bef_y"])
+        z.append(ser[0]["s_bef_z"])
+
+        node_id.append(srcc[i] + i)
+        parent_id.append(-1)
+
+        x.append(ser[0]["s_af_x"])
+        y.append(ser[0]["s_af_y"])
+        z.append(ser[0]["s_af_z"])
+
+        node_id.append(srcc[i] + 100 + i)
+        parent_id.append(srcc[i] + i)
+    
+data = {
+            'x': x,
+            'y': y,
+            'z': z,
+            'node_id': node_id,
+            'parent_id': parent_id,
+            }
+df = pd.DataFrame(data)
+new_n.append(navis.TreeNeuron(df, name="Skeletons"))
+fig = navis.plot3d( [asd1, asd2] + new_n  ,color = [ "gray", "gray", "red", "blue"])

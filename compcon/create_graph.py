@@ -14,20 +14,24 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 
 # from compcon.mapping import *
-def get_neuron_local(id,prune_factor, ds_factor):
+def get_neuron_local(id, prune_factor=None, ds_factor=None):
     try:
-        if ds_factor == 0:
-            n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
-            flywire.get_synapses(n, attach=True, materialization=783)
-            c = n.connectors
+        # Read the neuron data from the SWC file
+        n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
+        flywire.get_synapses(n, attach=True, materialization=783)
+        c = n.connectors
+
+        # Apply pruning if prune_factor is provided
+        if prune_factor is not None:
             n_prune = navis.prune_twigs(n, prune_factor)
-            n_ds = n_prune
         else:
-            n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
-            flywire.get_synapses(n, attach=True, materialization=783)
-            c = n.connectors
-            n_prune = navis.prune_twigs(n, prune_factor)
+            n_prune = n
+
+        # Apply downsampling if ds_factor is provided and not zero
+        if ds_factor is not None:
             n_ds = navis.downsample_neuron(n_prune, downsampling_factor=ds_factor, inplace=False)
+        else:
+            n_ds = n_prune
     
     except FileNotFoundError as e:
         print(f"Error: {e}")
@@ -38,6 +42,7 @@ def get_neuron_local(id,prune_factor, ds_factor):
         n_ds = None
 
     return n_ds, c
+
 
 
 def get_neuron(id,prune_factor, ds_factor):
@@ -156,7 +161,7 @@ def spatial_connectome_creation(edges, n_ds):
     # Step 4: Combine node indices to create unique identifiers for edges
     src_combined = neighbor_pairs[:, 0, 0] * 10000 + neighbor_pairs[:, 0, 1]
     dst_combined = neighbor_pairs[:, 1, 0] * 10000 + neighbor_pairs[:, 1, 1]
-
+    
     # Convert to lists for Arkouda
     src = src_combined.astype(np.int64).tolist()
     dst = dst_combined.astype(np.int64).tolist()
@@ -186,13 +191,13 @@ def spatial_connectome_creation(edges, n_ds):
     x_bef, y_bef, z_bef = s_bef_coords_repeated['x'].values, s_bef_coords_repeated['y'].values, s_bef_coords_repeated['z'].values
     x_af, y_af, z_af = s_af_coords_repeated['x'].values, s_af_coords_repeated['y'].values, s_af_coords_repeated['z'].values
 
-    s_bef_x = x_bef
-    s_bef_y = y_bef
-    s_bef_z = z_bef
+    s_bef_x = x_bef.astype(np.int64).tolist()
+    s_bef_y = y_bef.astype(np.int64).tolist()
+    s_bef_z = z_bef.astype(np.int64).tolist()
     
-    s_af_x = x_af
-    s_af_y = y_af
-    s_af_z = z_af
+    s_af_x = x_af.astype(np.int64).tolist()
+    s_af_y = y_af.astype(np.int64).tolist()
+    s_af_z = z_af.astype(np.int64).tolist()
     
     s_distances = np.sqrt((x_bef - x_af)**2 + (y_bef - y_af)**2 + (z_bef - z_af)**2).tolist()
     s_x = ((x_bef + x_af)/2).tolist()
@@ -202,13 +207,13 @@ def spatial_connectome_creation(edges, n_ds):
     x_bef, y_bef, z_bef = d_bef_coords_repeated['x'].values, d_bef_coords_repeated['y'].values, d_bef_coords_repeated['z'].values
     x_af, y_af, z_af = d_af_coords_repeated['x'].values, d_af_coords_repeated['y'].values, d_af_coords_repeated['z'].values
 
-    d_bef_x = x_bef
-    d_bef_y = y_bef
-    d_bef_z = z_bef
+    d_bef_x = x_bef.astype(np.int64).tolist()
+    d_bef_y = y_bef.astype(np.int64).tolist()
+    d_bef_z = z_bef.astype(np.int64).tolist()
 
-    d_af_x = x_af
-    d_af_y = y_af
-    d_af_z = z_af
+    d_af_x = x_af.astype(np.int64).tolist()
+    d_af_y = y_af.astype(np.int64).tolist()
+    d_af_z = z_af.astype(np.int64).tolist()
 
     # Calculate distances using vectorized operations
     d_distances = np.sqrt((x_bef - x_af)**2 + (y_bef - y_af)**2 + (z_bef - z_af)**2).tolist()
