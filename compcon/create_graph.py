@@ -19,16 +19,19 @@ def get_neuron_local(id, prune_factor=None, ds_factor=None):
         # Read the neuron data from the SWC file
         n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
         flywire.get_synapses(n, attach=True, materialization=783)
-        c = n.connectors
+        
 
         # Apply pruning if prune_factor is provided
         if prune_factor is not None:
             n_prune = navis.prune_twigs(n, prune_factor)
+            c = n_prune.connectors
         else:
             n_prune = n
+            c = n_prune.connectors
 
         # Apply downsampling if ds_factor is provided and not zero
         if ds_factor is not None:
+            # preserve_nodes = list(n_prune.connectors.node_id.values)
             n_ds = navis.downsample_neuron(n_prune, downsampling_factor=ds_factor, inplace=False)
         else:
             n_ds = n_prune
@@ -173,6 +176,10 @@ def spatial_connectome_creation(edges, n_ds):
     d_bef = neighbor_pairs[:, 1, 0].astype(np.int64).tolist()
     d_af = neighbor_pairs[:, 1, 1].astype(np.int64).tolist()
 
+    ###mapping###
+    bef_mapping = dict(zip(src + dst, s_bef + d_bef))
+    af_mapping = dict(zip(src + dst, s_af + d_af))
+
     # Create DataFrame for s_bef and s_af with their corresponding coordinates
     s_bef_coords = n_ds.nodes.set_index('node_id').loc[s_bef][['x', 'y', 'z']].reset_index()
     s_af_coords = n_ds.nodes.set_index('node_id').loc[s_af][['x', 'y', 'z']].reset_index()
@@ -204,6 +211,14 @@ def spatial_connectome_creation(edges, n_ds):
     s_y = ((y_bef + y_af)/2).tolist()
     s_z = ((z_bef + z_af)/2).tolist()
 
+    s_x_2 = (0.75*x_bef + 0.25*x_af).tolist()
+    s_y_2 = (0.75*y_bef + 0.25*y_af).tolist()
+    s_z_2 = (0.75*z_bef + 0.25*z_af).tolist()
+
+    s_x_3 = (0.25*x_bef + 0.75*x_af).tolist()
+    s_y_3 = (0.25*y_bef + 0.75*y_af).tolist()
+    s_z_3 = (0.25*z_bef + 0.75*z_af).tolist()
+
     x_bef, y_bef, z_bef = d_bef_coords_repeated['x'].values, d_bef_coords_repeated['y'].values, d_bef_coords_repeated['z'].values
     x_af, y_af, z_af = d_af_coords_repeated['x'].values, d_af_coords_repeated['y'].values, d_af_coords_repeated['z'].values
 
@@ -221,18 +236,40 @@ def spatial_connectome_creation(edges, n_ds):
     d_y = ((y_bef + y_af)/2).tolist()
     d_z = ((z_bef + z_af)/2).tolist()
 
+    d_x_2 = (0.75*x_bef + 0.25*x_af).tolist()
+    d_y_2 = (0.75*y_bef + 0.25*y_af).tolist()
+    d_z_2 = (0.75*z_bef + 0.25*z_af).tolist()
+
+    d_x_3 = (0.25*x_bef + 0.75*x_af).tolist()
+    d_y_3 = (0.25*y_bef + 0.75*y_af).tolist()
+    d_z_3 = (0.25*z_bef + 0.75*z_af).tolist()
+
     connection_type_n = ["n"] * len(src)
     
-    return src, dst, s_bef, s_bef_x, s_bef_y, s_bef_z, s_af, s_af_x, s_af_y, s_af_z, s_x, s_y, s_z, s_distances, d_bef, d_bef_x, d_bef_y, d_bef_z, d_af, d_af_x, d_af_y, d_af_z, d_x, d_y, d_z, d_distances, connection_type_n
+    return src, dst, s_bef, s_bef_x, s_bef_y, s_bef_z, s_af, s_af_x, s_af_y, s_af_z, s_x, s_y, s_z, s_x_2, s_y_2, s_z_2, s_x_3, s_y_3, s_z_3, s_distances, d_bef, d_bef_x, d_bef_y, d_bef_z, d_af, d_af_x, d_af_y, d_af_z, d_x, d_y, d_z, d_x_2, d_y_2, d_z_2, d_x_3, d_y_3, d_z_3, d_distances, connection_type_n, bef_mapping, af_mapping
 
 
-def snap_coordinates(src, dst, s_x, s_y, s_z, d_x, d_y, d_z, c_coordinates):
+def snap_coordinates(src, dst, s_x, s_y, s_z, s_x_2, s_y_2, s_z_2, s_x_3, s_y_3, s_z_3, d_x, d_y, d_z, d_x_2, d_y_2, d_z_2, d_x_3, d_y_3, d_z_3, c_coordinates):
+    src_2 = np.array(src) + 1000
+    src_2 = list(src_2)
+
+    src_3 = np.array(src) + 1000000
+    src_3 = list(src_3)
+
+    dst_2 = np.array(dst) + 1000
+    dst_2 = list(dst_2)
+
+    dst_3 = np.array(dst) + 1000000
+    dst_3 = list(dst_3)
+
+    syn_mapping = dict(zip(src + src_2 + src_3 + dst + dst_2 + dst_3, src + src + src + dst + dst + dst))
+    
     data = {
-        'x': s_x + d_x,
-        'y': s_y + d_y,
-        'z': s_z + d_z,
-        'node_id': src + dst,
-        'parent_id': [0] * len(src + dst)
+        'x': s_x + s_x_2 + s_x_3 + d_x + d_x_2 + d_x_3,
+        'y': s_y + s_y_2 + s_y_3 + d_y + d_y_2 + d_y_3,
+        'z': s_z + s_z_2 + s_z_3 + d_z + d_z_2 + d_z_3,
+        'node_id': src + src_2 + src_3 + dst + dst_2 + dst_3,
+        'parent_id': [0] * len(src + src_2 + src_3 + dst + dst_2 + dst_3)
     }
     
     df = pd.DataFrame(data).copy()
@@ -243,12 +280,15 @@ def snap_coordinates(src, dst, s_x, s_y, s_z, d_x, d_y, d_z, c_coordinates):
     )
 
     n_ids, dists = new_n.snap(c_coordinates)
+    n_ids = list(n_ids)
 
-    return list(n_ids), dists
+    syn_ids = np.vectorize(syn_mapping.get)(n_ids)
+
+    return syn_ids, dists
 
 
 def synaptic_data(neurons, id_list):
-    synaptic_src, synaptic_dst, x, y, z, n_combo, dists = [], [], [], [], [], [], []
+    synaptic_src, synaptic_s_bef, synaptic_s_af, synaptic_d_bef, synaptic_d_af, synaptic_dst, x, y, z, n_combo, dists = [], [], [], [], [], [], [], [], [], [], []
     combinations = list(itertools.combinations(id_list, 2))
 
     for combo in combinations:
@@ -269,15 +309,34 @@ def synaptic_data(neurons, id_list):
 
             c_coordinates = np.vstack((x_temp, y_temp, z_temp)).T
 
-            idloc1, dist1 = snap_coordinates(neurons[combo[0]]["src"],neurons[combo[0]]["dst"], neurons[combo[0]]["s_x"],neurons[combo[0]]["s_y"],
-                             neurons[combo[0]]["s_z"],neurons[combo[0]]["d_x"],neurons[combo[0]]["d_y"],neurons[combo[0]]["d_z"],
-                             c_coordinates)
-            idloc2, dist2 = snap_coordinates(neurons[combo[1]]["src"],neurons[combo[1]]["dst"], neurons[combo[1]]["s_x"],neurons[combo[1]]["s_y"],
-                             neurons[combo[1]]["s_z"],neurons[combo[1]]["d_x"],neurons[combo[1]]["d_y"],neurons[combo[1]]["d_z"],
-                             c_coordinates)
+            idloc1, dist1 = snap_coordinates(neurons[combo[0]]["src"],neurons[combo[0]]["dst"], 
+                                             neurons[combo[0]]["s_x"],neurons[combo[0]]["s_y"], neurons[combo[0]]["s_z"],
+                                             neurons[combo[0]]["s_x_2"],neurons[combo[0]]["s_y_2"], neurons[combo[0]]["s_z_2"],
+                                             neurons[combo[0]]["s_x_3"],neurons[combo[0]]["s_y_3"], neurons[combo[0]]["s_z_3"],
+                                             neurons[combo[0]]["d_x"],neurons[combo[0]]["d_y"],neurons[combo[0]]["d_z"],
+                                             neurons[combo[0]]["d_x_2"],neurons[combo[0]]["d_y_2"],neurons[combo[0]]["d_z_2"],
+                                             neurons[combo[0]]["d_x_3"],neurons[combo[0]]["d_y_3"],neurons[combo[0]]["d_z_3"],
+                                            c_coordinates)
+            idloc2, dist2 = snap_coordinates(neurons[combo[1]]["src"],neurons[combo[1]]["dst"], 
+                                             neurons[combo[1]]["s_x"],neurons[combo[1]]["s_y"], neurons[combo[1]]["s_z"],
+                                             neurons[combo[1]]["s_x_2"],neurons[combo[1]]["s_y_2"], neurons[combo[1]]["s_z_2"],
+                                             neurons[combo[1]]["s_x_3"],neurons[combo[1]]["s_y_3"], neurons[combo[1]]["s_z_3"],
+                                             neurons[combo[1]]["d_x"],neurons[combo[1]]["d_y"],neurons[combo[1]]["d_z"],
+                                             neurons[combo[1]]["d_x_2"],neurons[combo[1]]["d_y_2"],neurons[combo[1]]["d_z_2"],
+                                             neurons[combo[1]]["d_x_3"],neurons[combo[1]]["d_y_3"],neurons[combo[1]]["d_z_3"],
+                                            c_coordinates)
             
+            synaptic_s_bef_temp = np.vectorize(neurons[combo[0]]["bef_mapping"].get)(idloc1)
+            synaptic_s_af_temp = np.vectorize(neurons[combo[0]]["af_mapping"].get)(idloc1)
+            synaptic_d_bef_temp = np.vectorize(neurons[combo[1]]["bef_mapping"].get)(idloc2)
+            synaptic_d_af_temp = np.vectorize(neurons[combo[1]]["af_mapping"].get)(idloc2)
+
             synaptic_src.extend(idloc1)
+            synaptic_s_bef.extend(synaptic_s_bef_temp)
+            synaptic_s_af.extend(synaptic_s_af_temp)
             synaptic_dst.extend(idloc2)
+            synaptic_d_bef.extend(synaptic_d_bef_temp)
+            synaptic_d_af.extend(synaptic_d_af_temp)
             n_combo.extend([(f"{combo[0]}_{combo[1]}")] * len(idloc1))
             x.extend(x_temp)
             y.extend(y_temp)
@@ -286,7 +345,100 @@ def synaptic_data(neurons, id_list):
             
     connection_type_s = ["s"] * len(synaptic_src)
 
-    return synaptic_src, synaptic_dst, connection_type_s, x, y, z, n_combo, dists
+    return synaptic_src, synaptic_dst, connection_type_s, x, y, z, n_combo, dists, synaptic_s_bef, synaptic_s_af, synaptic_d_bef, synaptic_d_af
+
+def synaptic_data_2(neurons, id_list):
+    synaptic_src, synaptic_s_bef, synaptic_s_af, synaptic_d_bef, synaptic_d_af, synaptic_dst, x, y, z, n_combo, dists = [], [], [], [], [], [], [], [], [], [], []
+    combinations = list(itertools.combinations(id_list, 2))
+
+    for combo in combinations:
+            x_temp, y_temp, z_temp = [], [], []
+
+            n1, c1 = get_neuron_local(combo[0], 3000)
+            n2, c2 = get_neuron_local(combo[1], 3000)
+            
+            df1 = c1[c1["partner_id"] == combo[1]]
+            # df2 = neurons[combo[1]]["n"].connectors[neurons[combo[1]]["n"].connectors["partner_id"] == combo[0]]
+
+            # if df1.empty and df2.empty:
+            if df1.empty:
+                continue
+    
+            # connectors_df = pd.concat([df1, df2])
+
+            x_temp.extend(df1.loc[:, "x"])
+            y_temp.extend(df1.loc[:, "y"])
+            z_temp.extend(df1.loc[:, "z"])
+
+            c_coordinates = np.vstack((x_temp, y_temp, z_temp)).T
+
+            n1_synapse_nodes = df1.node_id.values.tolist()
+            n2_synapse_nodes, dists = n2.snap(c_coordinates)
+
+            synapse_finalid_src = []
+            for index in n1_synapse_nodes:
+                ds = navis.downsample_neuron(n1, downsampling_factor=1000, inplace=False, preserve_nodes=[index])
+                G = nx.DiGraph()
+                edges = ds.edges
+                G.add_edges_from(edges)
+                type_index = ds.nodes[ds.nodes["node_id"] == index]["type"].values[0]
+                if type_index == 'end':
+                    successor_temp = next(iter(G.successors(index)), None)
+                    syn_id=index*1000+successor_temp
+                    synapse_finalid_src.append(syn_id)
+                elif type_index == 'branch':
+                    predecessor_temp = next(iter(G.predecessors(index)), None)
+                    syn_id=predecessor_temp*1000+index
+                    synapse_finalid_src.append(syn_id)
+
+                else:
+                    successor_temp = next(iter(G.successors(index)), None)
+                    predecessor_temp = next(iter(G.predecessors(index)), None)
+                    syn_id=predecessor_temp*1000+successor_temp
+                    synapse_finalid_src.append(syn_id)
+
+            synapse_finalid_dst = []
+            for index in n2_synapse_nodes:
+                ds = navis.downsample_neuron(n2, downsampling_factor=1000, inplace=False, preserve_nodes=[index])
+                G = nx.DiGraph()
+                edges = ds.edges
+                G.add_edges_from(edges)
+                type_index = ds.nodes[ds.nodes["node_id"] == index]["type"].values[0]
+                if type_index == 'end':
+                    successor_temp = next(iter(G.successors(index)), None)
+                    syn_id=index*1000+successor_temp
+                    synapse_finalid_dst.append(syn_id)
+                elif type_index == 'branch':
+                    predecessor_temp = next(iter(G.predecessors(index)), None)
+                    syn_id=predecessor_temp*1000+index
+                    synapse_finalid_dst.append(syn_id)
+
+                else:
+                    successor_temp = next(iter(G.successors(index)), None)
+                    predecessor_temp = next(iter(G.predecessors(index)), None)
+                    syn_id=predecessor_temp*1000+successor_temp
+                    synapse_finalid_dst.append(syn_id)
+            
+            synaptic_s_bef_temp = np.vectorize(neurons[combo[0]]["bef_mapping"].get)(synapse_finalid_src)
+            synaptic_s_af_temp = np.vectorize(neurons[combo[0]]["af_mapping"].get)(synapse_finalid_src)
+            synaptic_d_bef_temp = np.vectorize(neurons[combo[1]]["bef_mapping"].get)(synapse_finalid_dst)
+            synaptic_d_af_temp = np.vectorize(neurons[combo[1]]["af_mapping"].get)(synapse_finalid_dst)
+
+            synaptic_src.extend(synapse_finalid_src)
+            synaptic_s_bef.extend(synaptic_s_bef_temp)
+            synaptic_s_af.extend(synaptic_s_af_temp)
+            synaptic_dst.extend(synapse_finalid_dst)
+            synaptic_d_bef.extend(synaptic_d_bef_temp)
+            synaptic_d_af.extend(synaptic_d_af_temp)
+            n_combo.extend([(f"{combo[0]}_{combo[1]}")] * len(synapse_finalid_src))
+            x.extend(x_temp)
+            y.extend(y_temp)
+            z.extend(z_temp)
+            dists.extend([0]*len(synapse_finalid_src))
+            
+    connection_type_s = ["s"] * len(synaptic_src)
+
+    return synaptic_src, synaptic_dst, connection_type_s, x, y, z, n_combo, dists, synaptic_s_bef, synaptic_s_af, synaptic_d_bef, synaptic_d_af
 
 
 def overall(id_list):
@@ -298,7 +450,9 @@ def overall(id_list):
 
     #all of the columns in the new df
     neurons={}
-    src, dst, s_bef, s_bef_x, s_bef_y, s_bef_z, s_af, s_af_x, s_af_y, s_af_z, s_x, s_y, s_z, s_distances, d_bef, d_bef_x, d_bef_y, d_bef_z, d_af, d_af_x, d_af_y, d_af_z, d_x, d_y, d_z, d_distances, connection_type_n, n_id = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+    src, dst, s_bef, s_bef_x, s_bef_y, s_bef_z, s_af, s_af_x, s_af_y, s_af_z, s_x, s_y, s_z, s_x_2, s_y_2, s_z_2, s_x_3, s_y_3, s_z_3, s_distances, d_bef, d_bef_x, d_bef_y, d_bef_z, d_af, d_af_x, d_af_y, d_af_z, d_x, d_y, d_z, d_x_2, d_y_2, d_z_2, d_x_3, d_y_3, d_z_3, d_distances, connection_type_n, n_id = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
+
+    bef_mapping, af_mapping = {}, {}
 
     for id in id_list:
         #load neuron and its connectors
@@ -314,9 +468,9 @@ def overall(id_list):
         edges = n.edges
 
         ##angst das namen doppelt vergeben werden, fueg noch neuronen id zu namen hinzu
-        src_temp, dst_temp, s_bef_temp, s_bef_x_temp, s_bef_y_temp, s_bef_z_temp, s_af_temp, s_af_x_temp, s_af_y_temp, s_af_z_temp, s_x_temp, s_y_temp, s_z_temp, s_distances_temp, d_bef_temp, d_bef_x_temp, d_bef_y_temp, d_bef_z_temp, d_af_temp, d_af_x_temp, d_af_y_temp, d_af_z_temp, d_x_temp, d_y_temp, d_z_temp, d_distances_temp, connection_type_n_temp = spatial_connectome_creation(edges, n)
+        src_temp, dst_temp, s_bef_temp, s_bef_x_temp, s_bef_y_temp, s_bef_z_temp, s_af_temp, s_af_x_temp, s_af_y_temp, s_af_z_temp, s_x_temp, s_y_temp, s_z_temp, s_x_2_temp, s_y_2_temp, s_z_2_temp, s_x_3_temp, s_y_3_temp, s_z_3_temp, s_distances_temp, d_bef_temp, d_bef_x_temp, d_bef_y_temp, d_bef_z_temp, d_af_temp, d_af_x_temp, d_af_y_temp, d_af_z_temp, d_x_temp, d_y_temp, d_z_temp, d_x_2_temp, d_y_2_temp, d_z_2_temp, d_x_3_temp, d_y_3_temp, d_z_3_temp, d_distances_temp, connection_type_n_temp, bef_mapping, af_mapping = spatial_connectome_creation(edges, n)
         
-        neurons[id].update({"src": src_temp, "dst": dst_temp, "s_x": s_x_temp, "s_y": s_y_temp, "s_z": s_z_temp, "d_x": d_x_temp, "d_y": d_y_temp, "d_z": d_z_temp})
+        neurons[id].update({"src": src_temp, "dst": dst_temp, "s_x": s_x_temp, "s_y": s_y_temp, "s_z": s_z_temp, "s_x": s_x_temp, "s_y": s_y_temp, "s_z": s_z_temp, "s_x_2": s_x_2_temp, "s_y_2": s_y_2_temp, "s_z_2": s_z_2_temp,"s_x_3": s_x_3_temp, "s_y_3": s_y_3_temp, "s_z_3": s_z_3_temp, "d_x": d_x_temp, "d_y": d_y_temp, "d_z": d_z_temp, "d_x_2": d_x_2_temp, "d_y_2": d_y_2_temp, "d_z_2": d_z_2_temp, "d_x_3": d_x_3_temp, "d_y_3": d_y_3_temp, "d_z_3": d_z_3_temp, "bef_mapping": bef_mapping, "af_mapping": af_mapping})
 
         src.extend(src_temp)
         dst.extend(dst_temp)
@@ -350,16 +504,16 @@ def overall(id_list):
     if id_list_copy == []:
         return None
     
-    synaptic_src, synaptic_dst, connection_type_s, x, y, z, n_combo, dists= synaptic_data(neurons, id_list_copy)
+    synaptic_src, synaptic_dst, connection_type_s, x, y, z, n_combo, dists, synaptic_s_bef, synaptic_s_af, synaptic_d_bef, synaptic_d_af= synaptic_data(neurons, id_list_copy)
 
     spatial_connectome_edge_dict = {
     "src": src + synaptic_src,
     "dst": dst + synaptic_dst,
-    "s_bef": s_bef + [0]* len(synaptic_src),
+    "s_bef": s_bef + synaptic_s_bef,
     "s_bef_x": s_bef_x + [0]* len(synaptic_src),
     "s_bef_y": s_bef_y + [0]* len(synaptic_src),
     "s_bef_z": s_bef_z + [0]* len(synaptic_src),
-    "s_af": s_af+ [0]* len(synaptic_src),
+    "s_af": s_af+ synaptic_s_af,
     "s_af_x": s_af_x+ [0]* len(synaptic_src),
     "s_af_y": s_af_y+ [0]* len(synaptic_src),
     "s_af_z": s_af_z+ [0]* len(synaptic_src),
@@ -367,11 +521,11 @@ def overall(id_list):
     "s_y": s_y+ y,
     "s_z": s_z+ z,
     "s_distance": s_distances+ dists,
-    "d_bef": d_bef+ [0]* len(synaptic_src),
+    "d_bef": d_bef+ synaptic_d_bef,
     "d_bef_x": d_bef_x+ [0]* len(synaptic_src),
     "d_bef_y": d_bef_y+ [0]* len(synaptic_src),
     "d_bef_z": d_bef_z+ [0]* len(synaptic_src),
-    "d_af": d_af+ [0]* len(synaptic_src),
+    "d_af": d_af+ synaptic_d_af,
     "d_af_x": d_af_x+ [0]* len(synaptic_src),
     "d_af_y": d_af_y+ [0]* len(synaptic_src),
     "d_af_z": d_af_z+ [0]* len(synaptic_src),
@@ -396,7 +550,6 @@ def overall(id_list):
 
     return graph ,spatial_connectome_edge_df, neurons
     # return 0
-
 
 def draw3d_graph(neuron_list, colors):
     combinations = list(itertools.combinations(neuron_list, 2))

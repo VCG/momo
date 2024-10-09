@@ -1,7 +1,10 @@
 test_folder/
 v2024.04.19.tar.gz
 chapel-1.33.0.tar.gz
+chapel-2.1.0.tar.gz
 chapel-1.33.0/
+chapel-2.1.0/
+arkouda-2024.06.21/chapel-2.1.0.tar.gz
 synapse_coordinates.csv.gz
 new_synapse_coordinates.csv
 questions_tasks.ipynb
