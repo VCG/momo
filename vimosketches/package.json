@@ -1,0 +1,19 @@
+{
+	"scripts": {
+		"dev": "npm run build -- --sourcemap=inline --watch",
+		"build": "esbuild js/widget.jsx --minify --format=esm --bundle --outdir=src/anywidget_test/static"
+	},
+	"dependencies": {
+		"@anywidget/react": "^0.0.8",
+		"@testing-library/react": "^12.1.3",
+		"@vimo-public/vimo-sketches": "file:vimo-public-vimo-sketches-0.2.6.tgz",
+		"anywidget": "^0.9.13",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"vimo-sketches2": "^0.1.0",
+		"vimodev": "^1.0.0"
+	},
+	"devDependencies": {
+		"esbuild": "^0.24.0"
+	}
+}

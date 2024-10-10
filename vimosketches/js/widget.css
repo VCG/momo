@@ -1,0 +1,62 @@
+/* .anywidget_test button {
+	background: linear-gradient(
+		300deg,
+		#9933ff 33.26%,
+		#ff6666 46.51%,
+		#faca30 59.77%,
+		#00cd99 73.03%,
+		#00ccff 86.29%
+	);
+	border-radius: 10px;
+	border: 0;
+	color: white;
+	cursor: pointer;
+	font-family: "Roboto", sans-serif;
+	font-size: 2em;
+	margin: 10px;
+	padding: 10px 20px;
+	transition: transform 0.25s ease-in-out;
+}
+
+.anywidget_test button:hover {
+	transform: scale(1.05);
+} */
+
+.anywidget_test {
+  text-align: center;
+}
+
+.anywidget_test-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .anywidget_test-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.anywidget_test-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.anywidget_test-link {
+  color: #61dafb;
+}
+
+@keyframes anywidget_test-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
