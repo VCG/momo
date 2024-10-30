@@ -15,19 +15,20 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 # from compcon.mapping import *
 def get_neuron_local(id, prune_factor=None, ds_factor=None):
+    # n_ds, c = {}, {}
     try:
         # Read the neuron data from the SWC file
         n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
-        flywire.get_synapses(n, attach=True, materialization=783)
+        # flywire.get_synapses(n, attach=True, materialization=783)
         
 
         # Apply pruning if prune_factor is provided
         if prune_factor is not None:
             n_prune = navis.prune_twigs(n, prune_factor)
-            c = n_prune.connectors
+            # c = n_prune.connectors
         else:
             n_prune = n
-            c = n_prune.connectors
+            # c = n_prune.connectors
 
         # Apply downsampling if ds_factor is provided and not zero
         if ds_factor is not None:
@@ -43,8 +44,9 @@ def get_neuron_local(id, prune_factor=None, ds_factor=None):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         n_ds = None
-
-    return n_ds, c
+    # print(c)
+    return n_ds
+    # return n_ds, c
 
 
 
@@ -347,99 +349,6 @@ def synaptic_data(neurons, id_list):
 
     return synaptic_src, synaptic_dst, connection_type_s, x, y, z, n_combo, dists, synaptic_s_bef, synaptic_s_af, synaptic_d_bef, synaptic_d_af
 
-def synaptic_data_2(neurons, id_list):
-    synaptic_src, synaptic_s_bef, synaptic_s_af, synaptic_d_bef, synaptic_d_af, synaptic_dst, x, y, z, n_combo, dists = [], [], [], [], [], [], [], [], [], [], []
-    combinations = list(itertools.combinations(id_list, 2))
-
-    for combo in combinations:
-            x_temp, y_temp, z_temp = [], [], []
-
-            n1, c1 = get_neuron_local(combo[0], 3000)
-            n2, c2 = get_neuron_local(combo[1], 3000)
-            
-            df1 = c1[c1["partner_id"] == combo[1]]
-            # df2 = neurons[combo[1]]["n"].connectors[neurons[combo[1]]["n"].connectors["partner_id"] == combo[0]]
-
-            # if df1.empty and df2.empty:
-            if df1.empty:
-                continue
-    
-            # connectors_df = pd.concat([df1, df2])
-
-            x_temp.extend(df1.loc[:, "x"])
-            y_temp.extend(df1.loc[:, "y"])
-            z_temp.extend(df1.loc[:, "z"])
-
-            c_coordinates = np.vstack((x_temp, y_temp, z_temp)).T
-
-            n1_synapse_nodes = df1.node_id.values.tolist()
-            n2_synapse_nodes, dists = n2.snap(c_coordinates)
-
-            synapse_finalid_src = []
-            for index in n1_synapse_nodes:
-                ds = navis.downsample_neuron(n1, downsampling_factor=1000, inplace=False, preserve_nodes=[index])
-                G = nx.DiGraph()
-                edges = ds.edges
-                G.add_edges_from(edges)
-                type_index = ds.nodes[ds.nodes["node_id"] == index]["type"].values[0]
-                if type_index == 'end':
-                    successor_temp = next(iter(G.successors(index)), None)
-                    syn_id=index*1000+successor_temp
-                    synapse_finalid_src.append(syn_id)
-                elif type_index == 'branch':
-                    predecessor_temp = next(iter(G.predecessors(index)), None)
-                    syn_id=predecessor_temp*1000+index
-                    synapse_finalid_src.append(syn_id)
-
-                else:
-                    successor_temp = next(iter(G.successors(index)), None)
-                    predecessor_temp = next(iter(G.predecessors(index)), None)
-                    syn_id=predecessor_temp*1000+successor_temp
-                    synapse_finalid_src.append(syn_id)
-
-            synapse_finalid_dst = []
-            for index in n2_synapse_nodes:
-                ds = navis.downsample_neuron(n2, downsampling_factor=1000, inplace=False, preserve_nodes=[index])
-                G = nx.DiGraph()
-                edges = ds.edges
-                G.add_edges_from(edges)
-                type_index = ds.nodes[ds.nodes["node_id"] == index]["type"].values[0]
-                if type_index == 'end':
-                    successor_temp = next(iter(G.successors(index)), None)
-                    syn_id=index*1000+successor_temp
-                    synapse_finalid_dst.append(syn_id)
-                elif type_index == 'branch':
-                    predecessor_temp = next(iter(G.predecessors(index)), None)
-                    syn_id=predecessor_temp*1000+index
-                    synapse_finalid_dst.append(syn_id)
-
-                else:
-                    successor_temp = next(iter(G.successors(index)), None)
-                    predecessor_temp = next(iter(G.predecessors(index)), None)
-                    syn_id=predecessor_temp*1000+successor_temp
-                    synapse_finalid_dst.append(syn_id)
-            
-            synaptic_s_bef_temp = np.vectorize(neurons[combo[0]]["bef_mapping"].get)(synapse_finalid_src)
-            synaptic_s_af_temp = np.vectorize(neurons[combo[0]]["af_mapping"].get)(synapse_finalid_src)
-            synaptic_d_bef_temp = np.vectorize(neurons[combo[1]]["bef_mapping"].get)(synapse_finalid_dst)
-            synaptic_d_af_temp = np.vectorize(neurons[combo[1]]["af_mapping"].get)(synapse_finalid_dst)
-
-            synaptic_src.extend(synapse_finalid_src)
-            synaptic_s_bef.extend(synaptic_s_bef_temp)
-            synaptic_s_af.extend(synaptic_s_af_temp)
-            synaptic_dst.extend(synapse_finalid_dst)
-            synaptic_d_bef.extend(synaptic_d_bef_temp)
-            synaptic_d_af.extend(synaptic_d_af_temp)
-            n_combo.extend([(f"{combo[0]}_{combo[1]}")] * len(synapse_finalid_src))
-            x.extend(x_temp)
-            y.extend(y_temp)
-            z.extend(z_temp)
-            dists.extend([0]*len(synapse_finalid_src))
-            
-    connection_type_s = ["s"] * len(synaptic_src)
-
-    return synaptic_src, synaptic_dst, connection_type_s, x, y, z, n_combo, dists, synaptic_s_bef, synaptic_s_af, synaptic_d_bef, synaptic_d_af
-
 
 def overall(id_list):
     #ensure no duplicate ids
@@ -538,17 +447,18 @@ def overall(id_list):
     }
     
     # Step 5: Connect to Arkouda and initialize the graph
-    ak.connect()
-    graph = ar.PropGraph()
-    spatial_connectome_edge_df = ak.DataFrame(spatial_connectome_edge_dict)
-    graph.load_edge_attributes(spatial_connectome_edge_df, source_column="src", destination_column="dst", 
-                               relationship_columns=["s_bef", "s_bef_x", "s_bef_y", "s_bef_z", "s_af", "s_af_x", 
-                                                     "s_af_y", "s_af_z", 's_x', "s_y", "s_z", "s_distance", "d_bef",
-                                                     "d_bef_x", "d_bef_y", "d_bef_z", "d_af", "d_af_x", "d_af_y", "d_af_z",
-                                                       "d_x", "d_y", "d_z", "d_distance", "n_id", "connection_type"])
-    ak.disconnect()
+    # ak.connect()
+    # graph = ar.PropGraph()
+    # spatial_connectome_edge_df = ak.DataFrame(spatial_connectome_edge_dict)
+    # graph.load_edge_attributes(spatial_connectome_edge_df, source_column="src", destination_column="dst", 
+    #                            relationship_columns=["s_bef", "s_bef_x", "s_bef_y", "s_bef_z", "s_af", "s_af_x", 
+    #                                                  "s_af_y", "s_af_z", 's_x', "s_y", "s_z", "s_distance", "d_bef",
+    #                                                  "d_bef_x", "d_bef_y", "d_bef_z", "d_af", "d_af_x", "d_af_y", "d_af_z",
+    #                                                    "d_x", "d_y", "d_z", "d_distance", "n_id", "connection_type"])
+    # ak.disconnect()
 
-    return graph ,spatial_connectome_edge_df, neurons
+    # return graph ,spatial_connectome_edge_df, neurons
+    return spatial_connectome_edge_dict, neurons
     # return 0
 
 def draw3d_graph(neuron_list, colors):
