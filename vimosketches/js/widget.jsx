@@ -16,14 +16,11 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 const render = createRender(() => {
 	const [value, setValue] = useModelState("value");
 	const [motif_json, setMotif_json] = useModelState("motif_json");
-	const [m, setM] = useModelState("m");
-	const [currentM, setCurrentM] = useModelState("currentM");
-	const [color_mapping, setColor_mapping] = useModelState("color_mapping");
-	const [nnodes, setNnodes] = useModelState("nnodes");
-	const [finalpath, setFinalpath] = useModelState("finalpath");
-	const [testlist, setTestlist] = useModelState("testlist");
-	const [new_list, setNew_list] = useModelState("new_list");
-  const [selectedIndex, setSelectedIndex] = useState(null);
+	const [node_mapping, setNode_mapping] = useModelState("node_mapping");
+	const [current_mapping, setCurrent_mapping] = useModelState("current_mapping");
+	const [nodeid_color_mapping, setNodeid_color_mapping] = useModelState("nodeid_color_mapping");
+  const [selectedIndex, setSelectedIndex] = useModelState("selectedIndex");
+  
   const [expandedIndex, setExpandedIndex] = useState(null);
 	const [attributes, setAttributes] = useState({displayMotifCount: false});
 
@@ -40,16 +37,14 @@ const render = createRender(() => {
   };
 
   useEffect(() => {
-      console.log("mapping: ", m);
-      console.log("testlist: ", testlist);
-  }, [m, testlist]);
+  }, [node_mapping]);
 
   const processRequest = async (motifJson, lim) => {
       console.log("This function is called upon clicking the search button.");
       console.log(motifJson.edges);
-        setMotif_json(motifJson.edges); // Save the serialized data in the widget state
+      setMotif_json(motifJson.edges); 
   };
-  console.log("colormapping", color_mapping)
+
 	return (
           <div>
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
@@ -57,13 +52,13 @@ const render = createRender(() => {
                 <Sketch processRequest={processRequest} attributes={attributes} />
               </div>
               <div style={{width: "300px", marginRight:"20px"}}>
-                {m.length === 0 ? (<div/>):(<div>
+                {node_mapping.length === 0 ? (<div/>):(<div>
                   <h3 style={{ textAlign: 'center', border: '0.5px solid gray', borderRadius: '12px', padding: '8px', maxWidth: '300px' }}>Results</h3>
 
                   <TableContainer component={Paper} style={{ maxHeight: '200px', maxWidth: '300px', overflowY: 'auto', border: '0.5px solid gray', borderRadius: '12px', alignContent: 'center' }}>
                     <Table aria-label="collapsible table" style={{ tableLayout: "fixed" }}>
                       <TableBody>
-                        {m.map((row, index) => (
+                        {node_mapping.map((row, index) => (
                           <React.Fragment key={index}>
                             <TableRow>
                               <TableCell 
@@ -73,8 +68,8 @@ const render = createRender(() => {
                                   backgroundColor: selectedIndex === index ? 'lightgray' : 'transparent' 
                                 }} 
                                 onClick={() => {
-                                  setSelectedIndex(index); // Set the selected index
-                                  setCurrentM(row); // Invoke the setCurrentM function
+                                  setSelectedIndex(index);
+                                  setCurrent_mapping(row); 
                                 }}
                               >
                                 {`Motif Instance ${index}`}
@@ -87,7 +82,7 @@ const render = createRender(() => {
                               <TableCell style={{ padding: 0 }}>
                               <Collapse in={expandedIndex === index} timeout="auto" unmountOnExit>
                                 <List dense style={{ paddingTop: 0, paddingBottom: 0 }}>
-                                  {new_list[index] && Object.entries(new_list[index]).map(([neuronId, color]) => (
+                                  {nodeid_color_mapping[index] && Object.entries(nodeid_color_mapping[index]).map(([neuronId, color]) => (
                                     <ListItem 
                                       key={index} 
                                       style={{ 
@@ -95,11 +90,11 @@ const render = createRender(() => {
                                         paddingTop: 10, 
                                         paddingBottom: 10,
                                         justifyContent: 'center'
-                                      }} // Remove padding from ListItem
+                                      }} 
                                     >
                                       <ListItemText 
                                         primary={`Neuron ID: ${neuronId}`} 
-                                        style={{ textAlign: 'center', padding: 0, margin: 0 }} // Remove padding/margin from ListItemText
+                                        style={{ textAlign: 'center', padding: 0, margin: 0 }}
                                       />
                                     </ListItem>
                                   ))}

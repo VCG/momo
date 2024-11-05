@@ -15,25 +15,20 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 # from compcon.mapping import *
 def get_neuron_local(id, prune_factor=None, ds_factor=None):
-    # n_ds, c = {}, {}
     try:
         # Read the neuron data from the SWC file
         n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
         # flywire.get_synapses(n, attach=True, materialization=783)
         
-
-        # Apply pruning if prune_factor is provided
         if prune_factor is not None:
-            n_prune = navis.prune_twigs(n, prune_factor)
-            # c = n_prune.connectors
+            n_prune = navis.prune_twigs(n, prune_factor, recursive= True)
+
         else:
             n_prune = n
-            # c = n_prune.connectors
 
-        # Apply downsampling if ds_factor is provided and not zero
         if ds_factor is not None:
-            # preserve_nodes = list(n_prune.connectors.node_id.values)
             n_ds = navis.downsample_neuron(n_prune, downsampling_factor=ds_factor, inplace=False)
+
         else:
             n_ds = n_prune
     
@@ -44,11 +39,8 @@ def get_neuron_local(id, prune_factor=None, ds_factor=None):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         n_ds = None
-    # print(c)
+    
     return n_ds
-    # return n_ds, c
-
-
 
 def get_neuron(id,prune_factor, ds_factor):
     repo_folder = Path.cwd()

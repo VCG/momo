@@ -325,13 +325,22 @@ def motif_to_vis(g, d, n, motif):
         "connection_type": branch_type
         }
     
-    # ak.connect()
+    g = ar.PropGraph()
+    spatial_connectome_edge_df = ak.DataFrame(d)
+    g.load_edge_attributes(spatial_connectome_edge_df, source_column="src", destination_column="dst", 
+                               relationship_columns=["s_bef", "s_bef_x", "s_bef_y", "s_bef_z", "s_af", "s_af_x", 
+                                                     "s_af_y", "s_af_z", 's_x', "s_y", "s_z", "s_distance", "d_bef",
+                                                     "d_bef_x", "d_bef_y", "d_bef_z", "d_af", "d_af_x", "d_af_y", "d_af_z",
+                                                       "d_x", "d_y", "d_z", "d_distance", "n_id", "connection_type"])
+    
+    
     subgraph = ar.PropGraph()
     df = ak.DataFrame(dicts)
     subgraph.load_edge_attributes(df, source_column="src", destination_column="dst", 
                                 relationship_columns=["connection_type"])
     
     m = findd(g, subgraph)
+    # return m
     mapping = m[0]
     
     src_mapped, dst_mapped = mapping_edges(subgraph, mapping)
@@ -351,42 +360,43 @@ def motif_to_vis(g, d, n, motif):
     
     testlist = get_segment_idx_nds(final_path, paths)
     
-    unique_n_ids = set(n_ids)
-    # filtered_rows = neuron3d[0].connectors[neuron3d[0].connectors['partner_id'].isin(unique_n_ids)]
-    filtered_rows = nds_neurons[0].connectors[nds_neurons[0].connectors['partner_id'].isin(unique_n_ids)]
+    # unique_n_ids = set(n_ids)
+    # # filtered_rows = neuron3d[0].connectors[neuron3d[0].connectors['partner_id'].isin(unique_n_ids)]
+    # filtered_rows = nds_neurons[0].connectors[nds_neurons[0].connectors['partner_id'].isin(unique_n_ids)]
 
-    ###SYNAPSES
-    synapse_src = df[df["connection_type"] == "s"].src.values.to_ndarray()
-    synapse_src = np.vectorize(mapping.get)(synapse_src)
-    synapse_dst = df[df["connection_type"] == "s"].dst.values.to_ndarray()
-    synapse_dst = np.vectorize(mapping.get)(synapse_dst)
-    # synapse_src , synapse_dst
+    # ###SYNAPSES
+    # synapse_src = df[df["connection_type"] == "s"].src.values.to_ndarray()
+    # synapse_src = np.vectorize(mapping.get)(synapse_src)
+    # synapse_dst = df[df["connection_type"] == "s"].dst.values.to_ndarray()
+    # synapse_dst = np.vectorize(mapping.get)(synapse_dst)
+    # # synapse_src , synapse_dst
 
-    d_pandas = d.to_pandas()
-    synapses = pd.DataFrame({'src': synapse_src, 'dst': synapse_dst})
+    # d_pandas = d.to_pandas()
+    # synapses = pd.DataFrame({'src': synapse_src, 'dst': synapse_dst})
     
-    result = pd.merge(d_pandas, synapses, on=['src', 'dst'], how='inner')
+    # result = pd.merge(d_pandas, synapses, on=['src', 'dst'], how='inner')
     
-    # result
-    filtered_rows1 = n[720575940634524441]['c'][n[720575940634524441]['c']['partner_id'] == 720575940622927541]
+    # # result
+    # filtered_rows1 = n[720575940634524441]['c'][n[720575940634524441]['c']['partner_id'] == 720575940622927541]
 
-    filt1 = filtered_rows1[((filtered_rows1["x"] == (754392.0)) & (filtered_rows1["y"] == (222796.0))) | ((filtered_rows1["x"] == (753388.0)) & (filtered_rows1["y"] == (222332.0))) | ((filtered_rows1["x"] == (752600.0)) & (filtered_rows1["y"] == (228184.0)))]
+    # filt1 = filtered_rows1[((filtered_rows1["x"] == (754392.0)) & (filtered_rows1["y"] == (222796.0))) | ((filtered_rows1["x"] == (753388.0)) & (filtered_rows1["y"] == (222332.0))) | ((filtered_rows1["x"] == (752600.0)) & (filtered_rows1["y"] == (228184.0)))]
     
-    x_temp, y_temp, z_temp = [], [], []
-    x_temp.extend(filt1.loc[:, "x"])
-    y_temp.extend(filt1.loc[:, "y"])
-    z_temp.extend(filt1.loc[:, "z"])
+    # x_temp, y_temp, z_temp = [], [], []
+    # x_temp.extend(filt1.loc[:, "x"])
+    # y_temp.extend(filt1.loc[:, "y"])
+    # z_temp.extend(filt1.loc[:, "z"])
     
-    c_coordinates = np.vstack((x_temp, y_temp, z_temp)).T
+    # c_coordinates = np.vstack((x_temp, y_temp, z_temp)).T
     
-    nt2, ct2 = get_neuron_local(720575940622927541, 3000)
+    # nt2, ct2 = get_neuron_local(720575940622927541, 3000)
     
-    n2_synapse_nodes, dists = nt2.snap(c_coordinates)
+    # n2_synapse_nodes, dists = nt2.snap(c_coordinates)
     
-    filt1['x'] = normalize_column(filt1['x'])
-    filt1['y'] = normalize_column(filt1['y'])
-    filt1['z'] = normalize_column(filt1['z'])
+    # filt1['x'] = normalize_column(filt1['x'])
+    # filt1['y'] = normalize_column(filt1['y'])
+    # filt1['z'] = normalize_column(filt1['z'])
     # filt1
     ak.disconnect()
 
-    return neuron_nodes, filt1, final_path, testlist
+    return neuron_nodes, final_path, testlist
+    # return neuron_nodes, filt1, final_path, testlist
