@@ -19,14 +19,26 @@ const render = createRender(() => {
 	const [node_mapping, setNode_mapping] = useModelState("node_mapping");
 	const [current_mapping, setCurrent_mapping] = useModelState("current_mapping");
 	const [nodeid_color_mapping, setNodeid_color_mapping] = useModelState("nodeid_color_mapping");
+	const [current_nodeid_color_mapping, setCurrent_nodeid_color_mapping] = useModelState("current_nodeid_color_mapping");
   const [selectedIndex, setSelectedIndex] = useModelState("selectedIndex");
   
   const [expandedIndex, setExpandedIndex] = useState(null);
 	const [attributes, setAttributes] = useState({displayMotifCount: false});
 
   const sketch_colors = ["#000000", "#00880A", "#003090", "#028785", "#c2c800"];
-  const transformed_colors = ["#c9c9c9", "#8cfa94", "#87afff", "#99f7f6", "#fcff9e"];
-
+  const transformed_colors = ["#000000", "#00880A", "#003090", "#028785", "#c2c800"];
+  const hexToRGBA = (hex, opacity) => {
+    // Remove '#' if it's present
+    const cleanHex = hex.replace('#', '');
+  
+    // Parse r, g, b from the hex color
+    const r = parseInt(cleanHex.substring(0, 2), 16);
+    const g = parseInt(cleanHex.substring(2, 4), 16);
+    const b = parseInt(cleanHex.substring(4, 6), 16);
+  
+    // Return RGBA color with specified opacity
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
   const color_transformation = sketch_colors.reduce((acc, color, index) => {
     acc[color] = transformed_colors[index];
     return acc;
@@ -47,10 +59,11 @@ const render = createRender(() => {
 
 	return (
           <div>
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
-              <div style={{width: "1000px"}}>
+            {/* <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}> */}
+            <div style={{ flexDirection: 'row', justifyContent: 'center'}}>
+              {/* <div style={{width: "1000px"}}> */}
                 <Sketch processRequest={processRequest} attributes={attributes} />
-              </div>
+              {/* </div> */}
               <div style={{width: "300px", marginRight:"20px"}}>
                 {node_mapping.length === 0 ? (<div/>):(<div>
                   <h3 style={{ textAlign: 'center', border: '0.5px solid gray', borderRadius: '12px', padding: '8px', maxWidth: '300px' }}>Results</h3>
@@ -70,6 +83,7 @@ const render = createRender(() => {
                                 onClick={() => {
                                   setSelectedIndex(index);
                                   setCurrent_mapping(row); 
+                                  setCurrent_nodeid_color_mapping(nodeid_color_mapping[index]);
                                 }}
                               >
                                 {`Motif Instance ${index}`}
@@ -86,7 +100,7 @@ const render = createRender(() => {
                                     <ListItem 
                                       key={index} 
                                       style={{ 
-                                        backgroundColor: color_transformation[color] || 'transparent', 
+                                        backgroundColor: hexToRGBA(color_transformation[color], 0.8) || 'transparent', 
                                         paddingTop: 10, 
                                         paddingBottom: 10,
                                         justifyContent: 'center'
@@ -94,7 +108,7 @@ const render = createRender(() => {
                                     >
                                       <ListItemText 
                                         primary={`Neuron ID: ${neuronId}`} 
-                                        style={{ textAlign: 'center', padding: 0, margin: 0 }}
+                                        style={{ textAlign: 'center', padding: 0, margin: 0, color: 'white' }}
                                       />
                                     </ListItem>
                                   ))}
@@ -110,7 +124,7 @@ const render = createRender(() => {
                 </div>)}
               </div>
             </div>
-          </div>
+           </div>
     );
 });
 

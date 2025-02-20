@@ -8,3 +8,11 @@ arkouda-2024.06.21/chapel-2.1.0.tar.gz
 synapse_coordinates.csv.gz
 new_synapse_coordinates.csv
 questions_tasks.ipynbsynapse_coordinates.csv
+*.csv
+arkouda/
+arkouda-2024.04.19/
+arkouda-njit/
+skelescope/
+*.json
+*.png
+neurons_dict.pkl

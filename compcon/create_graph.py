@@ -14,7 +14,7 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 
 # from compcon.mapping import *
-def get_neuron_local(id, prune_factor=None, ds_factor=None):
+def get_neuron_local(id, prune_factor=None, ds_factor=None, preserve_nodes=[]):
     try:
         # Read the neuron data from the SWC file
         n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
@@ -27,7 +27,7 @@ def get_neuron_local(id, prune_factor=None, ds_factor=None):
             n_prune = n
 
         if ds_factor is not None:
-            n_ds = navis.downsample_neuron(n_prune, downsampling_factor=ds_factor, inplace=False)
+            n_ds = navis.downsample_neuron(n_prune, downsampling_factor=ds_factor, preserve_nodes=preserve_nodes, inplace=False)
 
         else:
             n_ds = n_prune
