@@ -16,12 +16,15 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 const render = createRender(() => {
 	const [value, setValue] = useModelState("value");
 	const [motif_json, setMotif_json] = useModelState("motif_json");
+	const [limm, setLimm] = useModelState("limm");
 	const [node_mapping, setNode_mapping] = useModelState("node_mapping");
 	const [current_mapping, setCurrent_mapping] = useModelState("current_mapping");
 	const [nodeid_color_mapping, setNodeid_color_mapping] = useModelState("nodeid_color_mapping");
 	const [current_nodeid_color_mapping, setCurrent_nodeid_color_mapping] = useModelState("current_nodeid_color_mapping");
   const [selectedIndex, setSelectedIndex] = useModelState("selectedIndex");
+  const [loading, setLoading] = useModelState("loading");
   
+  const [isLoading, setIsLoading] = useState(false);
   const [expandedIndex, setExpandedIndex] = useState(null);
 	const [attributes, setAttributes] = useState({displayMotifCount: false});
 
@@ -48,24 +51,35 @@ const render = createRender(() => {
     setExpandedIndex(expandedIndex === index ? null : index); // Toggle the expanded state
   };
 
+
   useEffect(() => {
-  }, [node_mapping]);
+    
+  }, [loading]);
 
   const processRequest = async (motifJson, lim) => {
       console.log("This function is called upon clicking the search button.");
-      console.log(motifJson.edges);
-      setMotif_json(motifJson.edges); 
+         if ((motifJson.edges !== motif_json) | (lim !== limm)) {
+          console.log(motifJson.edges);
+          setLimm(lim);
+          setMotif_json(motifJson.edges);
+          setLoading(true);  // Set loading to true when the request starts
+             
+        }
+ 
   };
-
+  
 	return (
           <div>
-            {/* <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}> */}
-            <div style={{ flexDirection: 'row', justifyContent: 'center'}}>
-              {/* <div style={{width: "1000px"}}> */}
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
+              <div style={{width: "1000px"}}>
                 <Sketch processRequest={processRequest} attributes={attributes} />
-              {/* </div> */}
+              </div>
               <div style={{width: "300px", marginRight:"20px"}}>
-                {node_mapping.length === 0 ? (<div/>):(<div>
+              {loading ? (
+              <div>Loading...</div>
+            ) : node_mapping.length === 0 ? (
+              <div>Nothing found</div>
+             ) :Array.isArray(node_mapping) && node_mapping.length === 1 && node_mapping[0] === "error" ? (<div>Runtime Error</div>): (<div>
                   <h3 style={{ textAlign: 'center', border: '0.5px solid gray', borderRadius: '12px', padding: '8px', maxWidth: '300px' }}>Results</h3>
 
                   <TableContainer component={Paper} style={{ maxHeight: '200px', maxWidth: '300px', overflowY: 'auto', border: '0.5px solid gray', borderRadius: '12px', alignContent: 'center' }}>
@@ -100,7 +114,7 @@ const render = createRender(() => {
                                     <ListItem 
                                       key={index} 
                                       style={{ 
-                                        backgroundColor: hexToRGBA(color_transformation[color], 0.8) || 'transparent', 
+                                        backgroundColor: hexToRGBA(color, 0.8) || 'transparent', 
                                         paddingTop: 10, 
                                         paddingBottom: 10,
                                         justifyContent: 'center'

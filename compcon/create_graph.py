@@ -14,14 +14,20 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 
 # from compcon.mapping import *
-def get_neuron_local(id, prune_factor=None, ds_factor=None, preserve_nodes=[]):
+def get_neuron_local(id, prune_factor=None, ds_factor=None, preserve_nodes=[], dataset=''):
     try:
+        n=None
         # Read the neuron data from the SWC file
-        n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')  
+        if dataset== 'cave':
+            n = navis.read_swc(f'cave_data_converted/{id}.swc')  
+
+        elif dataset== 'flywire':
+            n = navis.read_swc(f'test_folder/sk_lod1_783_healed/{id}.swc')
+            
         # flywire.get_synapses(n, attach=True, materialization=783)
         
         if prune_factor is not None:
-            n_prune = navis.prune_twigs(n, prune_factor, recursive= True)
+            n_prune = navis.prune_twigs(n, prune_factor, recursive= 1)
 
         else:
             n_prune = n
@@ -368,7 +374,6 @@ def overall(id_list):
         neurons[id] = {"n": n, "c": c}
         edges = n.edges
 
-        ##angst das namen doppelt vergeben werden, fueg noch neuronen id zu namen hinzu
         src_temp, dst_temp, s_bef_temp, s_bef_x_temp, s_bef_y_temp, s_bef_z_temp, s_af_temp, s_af_x_temp, s_af_y_temp, s_af_z_temp, s_x_temp, s_y_temp, s_z_temp, s_x_2_temp, s_y_2_temp, s_z_2_temp, s_x_3_temp, s_y_3_temp, s_z_3_temp, s_distances_temp, d_bef_temp, d_bef_x_temp, d_bef_y_temp, d_bef_z_temp, d_af_temp, d_af_x_temp, d_af_y_temp, d_af_z_temp, d_x_temp, d_y_temp, d_z_temp, d_x_2_temp, d_y_2_temp, d_z_2_temp, d_x_3_temp, d_y_3_temp, d_z_3_temp, d_distances_temp, connection_type_n_temp, bef_mapping, af_mapping = spatial_connectome_creation(edges, n)
         
         neurons[id].update({"src": src_temp, "dst": dst_temp, "s_x": s_x_temp, "s_y": s_y_temp, "s_z": s_z_temp, "s_x": s_x_temp, "s_y": s_y_temp, "s_z": s_z_temp, "s_x_2": s_x_2_temp, "s_y_2": s_y_2_temp, "s_z_2": s_z_2_temp,"s_x_3": s_x_3_temp, "s_y_3": s_y_3_temp, "s_z_3": s_z_3_temp, "d_x": d_x_temp, "d_y": d_y_temp, "d_z": d_z_temp, "d_x_2": d_x_2_temp, "d_y_2": d_y_2_temp, "d_z_2": d_z_2_temp, "d_x_3": d_x_3_temp, "d_y_3": d_y_3_temp, "d_z_3": d_z_3_temp, "bef_mapping": bef_mapping, "af_mapping": af_mapping})
@@ -451,7 +456,6 @@ def overall(id_list):
 
     # return graph ,spatial_connectome_edge_df, neurons
     return spatial_connectome_edge_dict, neurons
-    # return 0
 
 def draw3d_graph(neuron_list, colors):
     combinations = list(itertools.combinations(neuron_list, 2))

@@ -16,3 +16,16 @@ skelescope/
 *.json
 *.png
 neurons_dict.pkl
+104_proofread_neurons_swc
+cave_data
+cave_data2
+cave_data_converted
+_private
+skelescope
+classification.csv
+column_assignment.csv
+cave.py
+vimotest
+trash
+flywire_annotations
+data

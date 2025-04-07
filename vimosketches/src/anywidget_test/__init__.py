@@ -69,7 +69,12 @@ def get_mapping(g, subgraph, iso_cap):
 
     start = time.time()
     if iso_cap > 0 :
-        isos = ar.subgraph_isomorphism(g, subgraph, algorithm_type="si", return_isos_as="complete", semantic_check="or", size_limit=iso_cap)
+        try:
+            isos = ar.subgraph_isomorphism(g, subgraph, algorithm_type="si", return_isos_as="complete", semantic_check="or", size_limit=iso_cap)
+        except Exception as e:
+            return ["error"]
+    # Handle the error or log it here
+
     else:
         isos = ar.subgraph_isomorphism(g, subgraph, algorithm_type="si", return_isos_as="complete", semantic_check="or")
     end = time.time()
@@ -135,22 +140,27 @@ def drawing_transformation(branches, synapses, color):
         id_to_col[str(branches[b][0] * 10000 + branches[b][1])] = color[b]
             
     color_mapping = dict(zip(nodes, color))
-
+    
     src, dst = test_graph_creation(branches)
+    
     for s in src:
         branch_type.append("n")
         con_color.append(id_to_col[str(s)]) 
 
     for s in synapses:
-        src.append(s[0][0] * 10000 + s[0][1])
-        dst.append(s[1][0] * 10000 + s[1][1])
+        dst.append(s[0][0] * 10000 + s[0][1])
+        src.append(s[1][0] * 10000 + s[1][1])
         branch_type.append("s")
         con_color.append(id_to_col[str(s[0][0] * 10000 + s[0][1])] + "_" + id_to_col[str(s[1][0] * 10000 + s[1][1])])
     
     return src, dst, branch_type, color_mapping, con_color
 
-def motif_to_vis(d, motif):
+def motif_to_vis(d, motif, lim):
     ak.connect()
+    transformed_dataset = ak.DataFrame(d.to_dict(orient='list'))
+    transformed_dataset = transformed_dataset[~((transformed_dataset["s_bef"] == 0) & (transformed_dataset["s_af"] == 0))]
+    d = transformed_dataset[~((transformed_dataset["d_bef"] == 0) & (transformed_dataset["d_af"] == 0))]
+    ak.client.maxTransferBytes *= 2
 
     g = ar.PropGraph()
     g.load_edge_attributes(d, source_column="src", destination_column="dst", 
@@ -172,9 +182,8 @@ def motif_to_vis(d, motif):
     
     branches = np.array(branches)
     synapses = np.array(synapses)
-
+    
     src, dst, branch_type, color_mapping, con_color = drawing_transformation(branches, synapses, color)
-    # return src, dst, branch_type, con_color
 
     subgraph_dict = {
         "src": dst,
@@ -188,9 +197,20 @@ def motif_to_vis(d, motif):
                                 relationship_columns=["connection_type"])
     cap=1000000
     node_mapping = get_mapping(g, subgraph, cap)
+    
+    if node_mapping[0] == []:
+        return [], []
+        
+    if node_mapping == ["error"]:
+        return ["error"], []
+    
     final_mapping = get_post_processed_mappings(g, dst, src, con_color, node_mapping)
     nodeid_color_mapping=[]
-    for element in final_mapping[:30]:
+    
+    if lim>len(final_mapping):
+        lim = len(final_mapping)
+        
+    for element in final_mapping[:lim]:
         neuron_ids=[]
         node_colors=[]
         for index in element:
@@ -209,7 +229,7 @@ def motif_to_vis(d, motif):
                     node_colors.append(color_mapping[index])
         nodeid_color_mapping.append(dict(zip(neuron_ids,node_colors)))
     
-    return final_mapping[:30], nodeid_color_mapping
+    return final_mapping[:lim], nodeid_color_mapping
 
 class Widget(anywidget.AnyWidget):
     _esm = pathlib.Path(__file__).parent / "static" / "widget.js"
@@ -218,8 +238,10 @@ class Widget(anywidget.AnyWidget):
 
     # Create a traitlet to hold the motifJson data
     motif_json = traitlets.List([]).tag(sync=True)
+    limm = traitlets.Int(1).tag(sync=True)
     node_mapping = traitlets.List([]).tag(sync=True)
     current_mapping = traitlets.Dict({}).tag(sync=True)
+    loading = traitlets.Bool(False).tag(sync=True)
 
     nodeid_color_mapping = traitlets.List([]).tag(sync=True)
     current_nodeid_color_mapping = traitlets.Dict({}).tag(sync=True)
@@ -230,6 +252,9 @@ class Widget(anywidget.AnyWidget):
         super().__init__(**kwargs)
         self.arkouda_df = arkouda_df
         self.observe(self.on_motif_json_change, names="motif_json")
+        self.observe(self.on_limm_change, names="limm")
+        self.observe(self.on_motif_json_change, names="motif_json")
+        self.observe(self.on_loading_change, names="loading")
         self.observe(self.on_current_motif_change, names="current_motif")
         self.observe(self.on_selectedIndex_change, names="selectedIndex")
         self.observe(self.on_current_nodeid_color_mapping_change, names="current_nodeid_color_mapping")
@@ -238,7 +263,14 @@ class Widget(anywidget.AnyWidget):
     def on_motif_json_change(self, change):
         self.motif_json = change['new'] 
         motif = change['new'] 
-        self.node_mapping, self.nodeid_color_mapping =  motif_to_vis(self.arkouda_df, motif)
+        
+    def on_loading_change(self, change):
+        self.node_mapping, self.nodeid_color_mapping =  motif_to_vis(self.arkouda_df, self.motif_json, self.limm)
+        self.loading=False
+    
+    def on_limm_change(self, change):
+        self.limm = change['new']
+        lim=change['new']
 
     def on_current_motif_change(self, change):
         self.current_mapping = change['new']
