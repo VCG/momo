@@ -3,8 +3,8 @@
 
 # 🧠 MoMo: Morphology-Aware Motif Analysis in Connectomes
 
-**MoMo** is a toolkit for transforming raw neuron and synapse data into morphology-aware graphs.  
-It supports scalable processing with [Arkouda](https://github.com/Bears-R-Us/arkouda) and interactive motif analysis through sketching and 3D visualization.
+**MoMo** is an interactive visualization tool for neuron morphology aware motif analysis in connectomes through sketching and 3D visualization. 
+It also supports transforming raw neuron and synapse data into morphology-aware graphs and integrates scalable graph analysis with [Arkouda](https://github.com/Bears-R-Us/arkouda).
 
 ---
 
@@ -40,8 +40,7 @@ All these steps are demonstrated in the [`data_transformation_example.ipynb`](da
 
 ## 🧰 Arkouda Server Setup
 
-To use MoMo with Arkouda for large-scale data processing, follow the official Arkouda server setup instructions here:  
-👉 [Arkouda Setup Guide](https://github.com/Bears-R-Us/arkouda-njit/tree/main)
+To use MoMo with Arkouda for large-scale data processing, follow the official Arkouda server setup instructions here: 👉 [Arkouda Setup Guide](https://github.com/Bears-R-Us/arkouda-njit/tree/main)
 
 ---
 
