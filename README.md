@@ -11,3 +11,58 @@ To get started, clone the repository and install the required Python packages:
 
 ```bash
 pip install pandas numpy networkx navis arkouda-client arachne-tools
+
+---
+
+## 📓 Example Notebook
+
+You can find an example Jupyter notebook in the `example_notebook/` directory:
+
+📁 [`example_notebook/data_transformation_example.ipynb`](example_notebook/data_transformation_example.ipynb)
+
+This notebook demonstrates how to:
+- Load and process neuron and synapse data
+- Map synapses to neuron segments
+- Build a neuron morphology-aware graph with MoMo
+
+---
+
+## ⚙️ Data Transformation Workflow
+
+MoMo provides a pipeline to:
+- Preprocess neuron and synapse data
+- Map synapses using a segment-aware strategy
+- Generate morphology-aware graphs, with or without synaptic connections
+
+All these steps are demonstrated in the `data_transformation_example.ipynb` notebook.
+
+---
+
+## 🧰 Arkouda Server Setup
+
+To use MoMo with Arkouda for large-scale data processing, follow the official Arkouda server setup instructions here:  
+👉 [Arkouda Setup Guide](https://placeholder.link/to-arkouda-setup)
+
+---
+
+## 📹 Demo Video
+
+Watch a full walkthrough of MoMo in action here:  
+🎥 [Demo Video](https://placeholder.link/to-demo-video)
+
+---
+
+## 📋 Requirements
+
+- `pandas`
+- `numpy`
+- `networkx`
+- `navis`
+- `arkouda-client`
+- `arachne-tools`
+
+Install all dependencies with:
+
+```bash
+pip install pandas numpy networkx navis arkouda-client arachne-tools
+
