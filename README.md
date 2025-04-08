@@ -33,7 +33,7 @@ You can find an example Jupyter notebook [`example_notebook.ipynb`](example_note
 
 MoMo provides a pipeline to:
 - Preprocess neuron and synapse data
-- Map synapses using a segment-aware strategy
+- Map synapses to neuron segments
 - Generate morphology-aware graphs
 
 All these steps are demonstrated in the [`data_transformation_example.ipynb`](data_transformation_example.ipynb) notebook.
