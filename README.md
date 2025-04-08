@@ -1,4 +1,4 @@
-# 🧠 MoMo: Morphology-Aware Analysis of Neurons
+# 🧠 MoMo: Interactive Morphology-Aware Motif Analysis in Connectomes
 
 **MoMo** is a Python toolkit for transforming raw neuron and synapse data into morphology-aware graphs.  
 It supports scalable processing with [Arkouda](https://github.com/Bears-R-Us/arkouda), integrates with [Navis](https://github.com/navis-org/navis) for neuron morphologies, and supports synapse-aware connectomics workflows.
@@ -11,6 +11,7 @@ To get started, clone the repository and install the required Python packages:
 
 ```bash
 pip install pandas numpy networkx navis arkouda-client arachne-tools
+```
 
 ---
 
@@ -18,7 +19,7 @@ pip install pandas numpy networkx navis arkouda-client arachne-tools
 
 You can find an example Jupyter notebook in the `example_notebook/` directory:
 
-📁 [`example_notebook/data_transformation_example.ipynb`](example_notebook/data_transformation_example.ipynb)
+📁 [`data_transformation_example.ipynb`](data_transformation_example.ipynb)
 
 This notebook demonstrates how to:
 - Load and process neuron and synapse data
@@ -34,14 +35,14 @@ MoMo provides a pipeline to:
 - Map synapses using a segment-aware strategy
 - Generate morphology-aware graphs, with or without synaptic connections
 
-All these steps are demonstrated in the `data_transformation_example.ipynb` notebook.
+All these steps are demonstrated in the [`data_transformation_example.ipynb`] notebook.
 
 ---
 
 ## 🧰 Arkouda Server Setup
 
 To use MoMo with Arkouda for large-scale data processing, follow the official Arkouda server setup instructions here:  
-👉 [Arkouda Setup Guide](https://placeholder.link/to-arkouda-setup)
+👉 [Arkouda Setup Guide](https://github.com/Bears-R-Us/arkouda-njit/tree/main)
 
 ---
 
