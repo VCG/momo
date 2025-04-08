@@ -13,7 +13,9 @@ It also supports transforming raw neuron and synapse data into morphology-aware 
 To get started, clone the repository and install the required Python packages:
 
 ```bash
-pip install pandas numpy networkx navis
+git clone https://github.com/VCG/momo.git && cd momo
+conda create -n momo python=3.11 
+pip install pandas numpy networkx navis ipython
 ```
 
 Download the data from GDrive [here](https://drive.google.com/drive/folders/15LN6hxLkhVxG4Oht5Ijj3IziPFeIrEqz?usp=sharing).
