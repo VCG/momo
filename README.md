@@ -1,4 +1,4 @@
-[![Example](https://img.shields.io/badge/paper-arxiv-blue.svg?colorB=4AC8F4)](example_notebook.ipynb)
+[![Example](https://img.shields.io/badge/example-notebook-blue.svg?colorB=4AC8F4)](example_notebook.ipynb)
 [![Data](https://img.shields.io/badge/data-gdrive-red.svg?colorB=f25100)](https://drive.google.com/drive/folders/15LN6hxLkhVxG4Oht5Ijj3IziPFeIrEqz?usp=sharing)
 
 # 🧠 MoMo: Morphology-Aware Motif Analysis in Connectomes
