@@ -34,7 +34,6 @@ def get_post_processed_mappings(g, subgraph_src, subgraph_dst, color, mapping):
     indices = ak.find([isos_by_edges_src,isos_by_edges_dst],[g.edge_attributes["src"], g.edge_attributes["dst"]])
     vals = g.edge_attributes["n_id"][indices]
 
-    # TODO: Can the below be done with Arkouda?
     isos_by_edges_src_ndarray = np.split(isos_by_edges_src.to_ndarray(), number_isos_found)
     isos_by_edges_dst_ndarray = np.split(isos_by_edges_dst.to_ndarray(), number_isos_found)
     vals_ndarray = np.split(vals.to_ndarray(), number_isos_found)
@@ -73,7 +72,6 @@ def get_mapping(g, subgraph, iso_cap):
             isos = ar.subgraph_isomorphism(g, subgraph, algorithm_type="si", return_isos_as="complete", semantic_check="or", size_limit=iso_cap)
         except Exception as e:
             return ["error"]
-    # Handle the error or log it here
 
     else:
         isos = ar.subgraph_isomorphism(g, subgraph, algorithm_type="si", return_isos_as="complete", semantic_check="or")
