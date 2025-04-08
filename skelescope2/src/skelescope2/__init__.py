@@ -103,7 +103,7 @@ def mapping_edges(subgraph, mapping):
     
     return src_mapped, dst_mapped
 
-def vis_transfromation(d, motif, mapping, nodeid_color_mapping, dataset):
+def vis_transfromation(d, motif, mapping, nodeid_color_mapping, dataset="cave"):
     ak.connect()
     transformed_dataset = ak.DataFrame(d.to_dict(orient='list'))
     transformed_dataset = transformed_dataset[~((transformed_dataset["s_bef"] == 0) & (transformed_dataset["s_af"] == 0))]
